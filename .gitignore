@@ -1,7 +1,10 @@
 # Node
 node_modules/
-node-v20.12.2-darwin-arm64/
+node-v*/
 *.tar.gz
+*.zip
+*.pkg
+node-v20.12.2-darwin-arm64.tar.gz
 
 # Vite / Frontend build
 frontend/dist/

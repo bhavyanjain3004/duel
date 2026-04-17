@@ -2,6 +2,8 @@
 
 A real-time, 2-player strategy game where you trap your opponent before the shrinking arena traps you first.
 
+🎮 **[Play it live → duel-mocha.vercel.app](https://duel-mocha.vercel.app)**
+
 > Built with Spring Boot · React · WebSockets · Redis · PostgreSQL
 
 ---
