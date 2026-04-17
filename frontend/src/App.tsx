@@ -4,6 +4,9 @@ import { Matchmaking } from './components/Matchmaking'
 import { GameBoard } from './components/GameBoard'
 import { GameState, Position, Wall } from './types'
 
+const API_URL = import.meta.env.PROD ? import.meta.env.VITE_BACKEND_URL : `http://${window.location.hostname}:8080`;
+const WS_URL = import.meta.env.PROD ? import.meta.env.VITE_WS_URL : `ws://${window.location.hostname}:8080`;
+
 function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
@@ -11,7 +14,7 @@ function App() {
 
   const connectWebSocket = (matchId: string) => {
     const client = new Client({
-      brokerURL: `${import.meta.env.VITE_WS_URL}/ws`,
+      brokerURL: `${WS_URL}/ws`,
       reconnectDelay: 5000,
       onConnect: () => {
         client.subscribe(`/topic/game/${matchId}`, (message: any) => {
@@ -25,7 +28,7 @@ function App() {
 
   const handleCreate = async (id: string) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/match/create`, {
+      const res = await fetch(`${API_URL}/api/match/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: id })
@@ -43,7 +46,7 @@ function App() {
 
   const handleJoin = async (matchId: string, id: string) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/match/join`, {
+      const res = await fetch(`${API_URL}/api/match/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matchId, playerId: id })
