@@ -30,12 +30,14 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: id })
       });
+      if (!res.ok) throw new Error("Server error while creating match");
       const state = await res.json();
       setPlayerId(id);
       setGameState(state);
       connectWebSocket(state.matchId);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      alert("Failed to create match: " + (e.message || "Network Error"));
     }
   };
 
