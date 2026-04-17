@@ -125,8 +125,4 @@ GitHub Actions runs on every push to `main`:
 - **build-backend**: Compiles the Spring Boot app with bundled Maven, runs JUnit tests
 - **build-frontend**: Installs deps, runs TypeScript check (`tsc`), builds Vite bundle
 
----
 
-## 📄 License
-
-MIT — feel free to fork, remix, and build on it.
