@@ -3,7 +3,7 @@ spring:
     name: pathfinder-duel
 
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/duel_db}
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:duel_db}
     username: ${PGUSER:duel_user}
     password: ${PGPASSWORD:duel_password}
     driver-class-name: org.postgresql.Driver
