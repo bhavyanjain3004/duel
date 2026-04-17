@@ -56,6 +56,14 @@ public class GameWebSocketController {
         
         if (gameEngine.placeWall(state, wall)) {
             player.setWallsPlacedThisTurn(player.getWallsPlacedThisTurn() + 1);
+
+            // Check if the wall just trapped the opponent (no valid moves after wall placement)
+            String opponentId = state.getPlayer1().getId().equals(playerId)
+                    ? state.getPlayer2().getId() : state.getPlayer1().getId();
+            if (!hasValidMoves(state, opponentId)) {
+                finishGame(state, playerId);
+            }
+
             matchService.save(state);
             messagingTemplate.convertAndSend("/topic/game/" + matchId, state);
         } else {
@@ -89,27 +97,21 @@ public class GameWebSocketController {
                 gameEngine.shrinkGrid(state);
             }
 
-            // Win condition check
-            if (!state.getPlayer1().isAlive() || !state.getPlayer2().isAlive() || !hasValidMoves(state, state.getCurrentTurnPlayerId())) {
-                state.setStatus("FINISHED");
+            // Win condition: a player was killed by grid shrink, OR the next player has no valid moves
+            if (!state.getPlayer1().isAlive() || !state.getPlayer2().isAlive()) {
+                // Grid shrink killed someone
+                String winnerId;
                 if (state.getPlayer1().isAlive() && !state.getPlayer2().isAlive()) {
-                    state.setWinnerId(state.getPlayer1().getId());
+                    winnerId = state.getPlayer1().getId();
                 } else if (!state.getPlayer1().isAlive() && state.getPlayer2().isAlive()) {
-                    state.setWinnerId(state.getPlayer2().getId());
+                    winnerId = state.getPlayer2().getId();
                 } else {
-                    // Tie or out of moves
-                    state.setWinnerId("TIE_OR_STARVED");
+                    winnerId = "TIE_OR_STARVED";
                 }
-                log.info("Match {} finished. Turns: {}, Winner: {}", state.getMatchId(), state.getTurnCount(), state.getWinnerId());
-                MatchRecord record = new MatchRecord();
-                record.setMatchId(state.getMatchId());
-                record.setPlayer1Id(state.getPlayer1().getId());
-                record.setPlayer2Id(state.getPlayer2().getId());
-                record.setWinnerId(state.getWinnerId());
-                record.setTotalTurns(state.getTurnCount());
-                record.setEndedAt(LocalDateTime.now());
-                matchRecordRepository.save(record);
-                log.info("Persisted MatchRecord to PostgreSQL for match {}", state.getMatchId());
+                finishGame(state, winnerId);
+            } else if (!hasValidMoves(state, state.getCurrentTurnPlayerId())) {
+                // Next player to move is completely trapped — the player who just moved wins
+                finishGame(state, playerId);
             }
 
             matchService.save(state);
@@ -120,19 +122,51 @@ public class GameWebSocketController {
     }
 
     private boolean hasValidMoves(GameState state, String playerId) {
-        // Simplified check, could actually call game engine to test all 4 adjacent spots
         PlayerState p = state.getPlayer1().getId().equals(playerId) ? state.getPlayer1() : state.getPlayer2();
+        if (p == null || !p.isAlive()) return false;
         Position pos = p.getPosition();
-        int[][] dirs = {{0,1}, {1,0}, {0,-1}, {-1,0}};
+        int[][] dirs = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
         for (int[] d : dirs) {
             Position next = new Position(pos.getX() + d[0], pos.getY() + d[1]);
-            // Re-use logic. To avoid modifying state, just check adjacent and wall
-            // Simple mock here for compiler:
-            if (next.getX() >= state.getGridMinX() && next.getX() <= state.getGridMaxX()) {
-                // assume there is at least a way
-                return true; 
+            // Must be within the current (possibly shrunk) grid bounds
+            if (next.getX() < state.getGridMinX() || next.getX() > state.getGridMaxX() ||
+                next.getY() < state.getGridMinY() || next.getY() > state.getGridMaxY()) {
+                continue;
             }
+            // Must not be blocked by a wall
+            Wall moveWall = new Wall(pos, next);
+            moveWall.normalize();
+            boolean blocked = false;
+            for (Wall w : state.getWalls()) {
+                Wall cw = new Wall(w.getP1(), w.getP2());
+                cw.normalize();
+                if (cw.equals(moveWall)) {
+                    blocked = true;
+                    break;
+                }
+            }
+            if (!blocked) return true;
         }
-        return false; // Very edge case mock
+        return false;
+    }
+
+    private void finishGame(GameState state, String winnerId) {
+        if ("FINISHED".equals(state.getStatus())) return; // already ended
+        state.setStatus("FINISHED");
+        state.setWinnerId(winnerId);
+        log.info("Match {} finished. Turns: {}, Winner: {}", state.getMatchId(), state.getTurnCount(), winnerId);
+        try {
+            MatchRecord record = new MatchRecord();
+            record.setMatchId(state.getMatchId());
+            record.setPlayer1Id(state.getPlayer1().getId());
+            record.setPlayer2Id(state.getPlayer2().getId());
+            record.setWinnerId(winnerId);
+            record.setTotalTurns(state.getTurnCount());
+            record.setEndedAt(LocalDateTime.now());
+            matchRecordRepository.save(record);
+            log.info("Persisted MatchRecord to PostgreSQL for match {}", state.getMatchId());
+        } catch (Exception e) {
+            log.error("Failed to persist MatchRecord for match {}: {}", state.getMatchId(), e.getMessage());
+        }
     }
 }
