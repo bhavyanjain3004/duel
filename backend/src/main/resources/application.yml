@@ -3,12 +3,13 @@ spring:
     name: pathfinder-duel
 
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:duel_db}
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:duel_db}?sslmode=require
     username: ${PGUSER:duel_user}
     password: ${PGPASSWORD:duel_password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: false
