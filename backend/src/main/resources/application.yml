@@ -3,9 +3,9 @@ spring:
     name: pathfinder-duel
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/duel_db
-    username: duel_user
-    password: duel_password
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/duel_db}
+    username: ${PGUSER:duel_user}
+    password: ${PGPASSWORD:duel_password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -18,8 +18,7 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      url: ${REDIS_URL:redis://localhost:6379}
 
 server:
-  port: 8080
+  port: ${PORT:8080}

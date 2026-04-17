@@ -11,7 +11,7 @@ function App() {
 
   const connectWebSocket = (matchId: string) => {
     const client = new Client({
-      brokerURL: `ws://${window.location.hostname}:8080/ws`,
+      brokerURL: `${import.meta.env.VITE_WS_URL}/ws`,
       reconnectDelay: 5000,
       onConnect: () => {
         client.subscribe(`/topic/game/${matchId}`, (message: any) => {
@@ -25,7 +25,7 @@ function App() {
 
   const handleCreate = async (id: string) => {
     try {
-      const res = await fetch('http://localhost:8080/api/match/create', {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/match/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: id })
@@ -41,7 +41,7 @@ function App() {
 
   const handleJoin = async (matchId: string, id: string) => {
     try {
-      const res = await fetch('http://localhost:8080/api/match/join', {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/match/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matchId, playerId: id })

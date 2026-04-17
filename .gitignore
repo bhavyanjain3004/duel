@@ -1,0 +1,27 @@
+# Node
+node_modules/
+node-v20.12.2-darwin-arm64/
+*.tar.gz
+
+# Vite / Frontend build
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+
+# Maven / Backend build
+backend/target/
+backend/*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files (keep .env.production — it's safe, no secrets)
+.env
+.env.local
