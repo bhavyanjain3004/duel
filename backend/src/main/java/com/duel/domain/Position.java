@@ -1,0 +1,21 @@
+package com.duel.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Position implements Serializable {
+    private int x;
+    private int y;
+
+    public boolean isAdjacentTo(Position other) {
+        int dx = Math.abs(this.x - other.x);
+        int dy = Math.abs(this.y - other.y);
+        return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
+    }
+}
