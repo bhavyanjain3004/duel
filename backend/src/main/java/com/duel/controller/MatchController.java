@@ -11,7 +11,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @RestController
 @RequestMapping("/api/match")
-@CrossOrigin(origins = "*") // For local development simplicity
 public class MatchController {
 
     private final MatchService matchService;
